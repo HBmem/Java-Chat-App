@@ -14,9 +14,9 @@ import javax.swing.JTextArea;
 
 public class ServerFrame extends JFrame implements ActionListener {
     
-    JButton startServerBtn;
-    JScrollPane serverLogScrollArea;
-    JTextArea serverLogTextArea;
+    private JButton startServerBtn;
+    private JScrollPane serverLogScrollArea;
+    private JTextArea serverLogTextArea;
 
     private JPanel headerPanel() {
         JPanel header = new JPanel();
@@ -29,7 +29,8 @@ public class ServerFrame extends JFrame implements ActionListener {
         startServerBtn.setBounds(0, 0, 100, 100);
         startServerBtn.addActionListener(e -> {
             System.out.println("Print!!!");
-            serverLogTextArea.append("Server Start\n");
+            // serverLogTextArea.append("Server Start\n");
+            logText("Server Start");
         });
 
         header.add(startServerBtn);
@@ -51,13 +52,12 @@ public class ServerFrame extends JFrame implements ActionListener {
     }
 
     public ServerFrame() {
-        this.setTitle(getTitle());
-        this.setTitle("Chat App");
+        this.setTitle("Chat Server");
         this.setDefaultCloseOperation(3);
         this.setSize(490, 415);
         this.setLayout(null);
 
-        ImageIcon image = new ImageIcon("src/assets/window-icon.png");
+        ImageIcon image = new ImageIcon("src/assets/server-icon.png");
         this.setIconImage(image.getImage());
         // this.getContentPane().setBackground(Color.gray);
 
