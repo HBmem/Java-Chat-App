@@ -6,6 +6,10 @@ import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
+import java.net.Socket;
 
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
@@ -16,11 +20,17 @@ import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.SwingConstants;
 
+import resources.service.ClientThread;
+
 public class ClientFrame extends JFrame implements ActionListener {
+
+    private final int PORT = 5000;
 
     private JScrollPane clientLogScrollArea;
     private JTextArea clientLogTextArea;
     private boolean connected = false;
+    private String clientName = "";
+    private String userText;
 
     private JPanel headerPanel() {
         JButton connectBtn = new JButton();
@@ -40,6 +50,9 @@ public class ClientFrame extends JFrame implements ActionListener {
                 System.out.println("Please enter a username");
             } else {
                 System.out.println("Username is there!");
+                this.clientName = usernameTextField.getText();
+                logText("Your username is " + t);
+                connect();
             }
         });
 
@@ -76,6 +89,8 @@ public class ClientFrame extends JFrame implements ActionListener {
         clientTextArea.setFont(new Font("Serif", Font.PLAIN, 15));
         clientTextArea.addActionListener(e -> {
             System.out.println("Enter Pressed");
+            this.userText = clientTextArea.getText();
+            clientTextArea.setText("");
         });
 
         footer.add(clientTextArea);
@@ -99,8 +114,39 @@ public class ClientFrame extends JFrame implements ActionListener {
         this.setVisible(true);
     }
 
+    public void connect() {
+        System.out.println("tes1");
+        if (clientName.isEmpty()) {
+            System.out.println("tes1");
+            try (Socket socket = new Socket("localhost", PORT)) {
+                System.out.println("Starting connection!");
+                BufferedReader input = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+
+                PrintWriter output = new PrintWriter(socket.getOutputStream(), true);
+
+                String userInput;
+                String response;
+
+                ClientThread clientThread = new ClientThread(socket);
+                clientThread.start();
+
+                System.out.println("Listening!");
+                do {
+                    String message = ( "(" + clientName + "):");
+                    logText(message);
+                    userInput = userText;
+                    logText(userInput + "/n");
+                } while (!userInput.equals(".exit"));
+            } catch (Exception e) {
+                System.out.println("Exception occurred in client:" + e.getStackTrace());
+            }
+        } else {
+            System.out.println("");
+        }
+    }
+
     public void logText(String s) {
-        clientLogTextArea.append(s + "/n");
+        clientLogTextArea.append(s);
     }
 
     @Override
