@@ -4,6 +4,10 @@ import java.awt.Color;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
@@ -11,9 +15,13 @@ import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
+import javax.swing.SwingWorker;
+
+import resources.service.ServerThread;
 
 public class ServerFrame extends JFrame implements ActionListener {
     
+    private String serverStatus = "OFF";
     private JButton startServerBtn;
     private JScrollPane serverLogScrollArea;
     private JTextArea serverLogTextArea;
@@ -28,9 +36,9 @@ public class ServerFrame extends JFrame implements ActionListener {
         startServerBtn.setText("Start Server");
         startServerBtn.setBounds(0, 0, 100, 100);
         startServerBtn.addActionListener(e -> {
-            System.out.println("Print!!!");
-            // serverLogTextArea.append("Server Start\n");
-            logText("Server Start");
+            logText("Server Start \n");
+            startServerBtn.setEnabled(false);
+            startServer();
         });
 
         header.add(startServerBtn);
@@ -68,8 +76,36 @@ public class ServerFrame extends JFrame implements ActionListener {
         this.setVisible(true);
     }
 
+    public void startServer() {
+        SwingWorker<Void, Void> worker = new SwingWorker<>() {
+            @Override
+            protected Void doInBackground() throws Exception {
+                serverStatus = "ON";
+                List<ServerThread> threadList = new CopyOnWriteArrayList<>();
+                try (ServerSocket serverSocket = new ServerSocket(5000)) {
+                    while (serverStatus.equals("ON")) {
+                        Socket socket = serverSocket.accept();
+                        ServerThread serverThread = new ServerThread(socket, threadList);
+                        threadList.add(serverThread);
+                        serverThread.start();
+                    }
+                } catch (Exception e) {
+                    System.out.println("Error occurred: " + e.getMessage());
+                }
+                return null;
+            }
+
+            @Override
+            protected void done() {
+                startServerBtn.setEnabled(true);
+            }
+        };
+
+        worker.execute();
+    }
+
     public void logText(String s) {
-        serverLogTextArea.append(s + "/n");
+        serverLogTextArea.append(s);
     }
 
     @Override

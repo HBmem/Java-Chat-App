@@ -1,36 +1,46 @@
 package resources.service;
 
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.Socket;
+
+import resources.ui.ClientFrame;
 
 public class ClientThread extends Thread{
     
 
     private Socket socket;
     private BufferedReader in;
+    private ClientFrame clientFrame;
 
-    public ClientThread(Socket s) {
+    public ClientThread(Socket s, ClientFrame clientFrame) {
         this.socket = s;
+        this.clientFrame = clientFrame;
+
         try {
             this.in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-        } catch (Exception e) {
+        } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
     public void run() {
         try {
-            while(true) {
+             while (true) {
                 String response = in.readLine();
-                System.out.println(response);
-            }
-        } catch (Exception e) {
+                if (response == null) {
+                    break;
+                }
+                clientFrame.logTextFromServer(response + "\n");
+             }
+        } catch (IOException e) {
             e.printStackTrace();
         } finally {
             try {
                 in.close();
-            } catch (Exception e) {
+                socket.close();
+            } catch (IOException e) {
                 e.printStackTrace();
             }
         }
