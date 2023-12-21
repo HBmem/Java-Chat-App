@@ -4,11 +4,13 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.Socket;
+import java.util.logging.Logger;
 
 import resources.ui.ClientFrame;
 
 public class ClientThread extends Thread{
     
+    Logger logger = Logger.getLogger(getClass().getName());
 
     private Socket socket;
     private BufferedReader in;
@@ -25,6 +27,7 @@ public class ClientThread extends Thread{
         }
     }
 
+    @Override
     public void run() {
         try {
              while (true) {
@@ -32,6 +35,7 @@ public class ClientThread extends Thread{
                 if (response == null) {
                     break;
                 }
+                logger.info(response);
                 clientFrame.logTextFromServer(response + "\n");
              }
         } catch (IOException e) {

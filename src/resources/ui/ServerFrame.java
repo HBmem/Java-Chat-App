@@ -4,10 +4,13 @@ import java.awt.Color;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.logging.Logger;
 
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
@@ -20,11 +23,15 @@ import javax.swing.SwingWorker;
 import resources.service.ServerThread;
 
 public class ServerFrame extends JFrame implements ActionListener {
+
+    transient Logger logger = Logger.getLogger(getClass().getName());
     
     private String serverStatus = "OFF";
     private JButton startServerBtn;
-    private JScrollPane serverLogScrollArea;
     private JTextArea serverLogTextArea;
+
+    private transient List<ServerThread> serverThreads = new ArrayList<>();
+    private transient List<PrintWriter> clientWriters = new ArrayList<>();
 
     private JPanel headerPanel() {
         JPanel header = new JPanel();
@@ -53,7 +60,7 @@ public class ServerFrame extends JFrame implements ActionListener {
         serverLogTextArea = new JTextArea(15,25);
         serverLogTextArea.setLineWrap(true);
         serverLogTextArea.setFont(new Font("Serif", Font.PLAIN, 15));
-        serverLogScrollArea = new JScrollPane(serverLogTextArea);
+        JScrollPane serverLogScrollArea = new JScrollPane(serverLogTextArea);
 
         serverLogPanel.add(serverLogScrollArea);
         return serverLogPanel;
@@ -67,7 +74,6 @@ public class ServerFrame extends JFrame implements ActionListener {
 
         ImageIcon image = new ImageIcon("src/assets/server-icon.png");
         this.setIconImage(image.getImage());
-        // this.getContentPane().setBackground(Color.gray);
 
         this.add(headerPanel());
         this.add(severLogPanel());
@@ -76,21 +82,30 @@ public class ServerFrame extends JFrame implements ActionListener {
         this.setVisible(true);
     }
 
-    public void startServer() {
+    private void startServer() {
         SwingWorker<Void, Void> worker = new SwingWorker<>() {
             @Override
             protected Void doInBackground() throws Exception {
                 serverStatus = "ON";
-                List<ServerThread> threadList = new CopyOnWriteArrayList<>();
                 try (ServerSocket serverSocket = new ServerSocket(5000)) {
                     while (serverStatus.equals("ON")) {
                         Socket socket = serverSocket.accept();
-                        ServerThread serverThread = new ServerThread(socket, threadList);
-                        threadList.add(serverThread);
+
+                        // Create a PrintWriter for this client and add it to the list
+                        PrintWriter writer = new PrintWriter(socket.getOutputStream(), true);
+                        clientWriters.add(writer);
+
+                        for (ServerThread thread : serverThreads) {
+                            thread.addClientWriter(writer);
+                            thread.updateServerThreads(writer);
+                        }
+
+                        ServerThread serverThread = new ServerThread(socket, clientWriters);
                         serverThread.start();
+                        serverThreads.add(serverThread);
                     }
-                } catch (Exception e) {
-                    System.out.println("Error occurred: " + e.getMessage());
+                } catch (IOException e) {
+                    logger.info("Error occurred: " + e.getMessage());
                 }
                 return null;
             }
@@ -110,7 +125,6 @@ public class ServerFrame extends JFrame implements ActionListener {
 
     @Override
     public void actionPerformed(ActionEvent e) {
-        // TODO Auto-generated method stub
         throw new UnsupportedOperationException("Unimplemented method 'actionPerformed'");
     }
 }
