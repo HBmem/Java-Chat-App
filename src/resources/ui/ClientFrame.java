@@ -15,6 +15,7 @@ import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
+import javax.swing.JScrollBar;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
@@ -27,6 +28,8 @@ public class ClientFrame extends JFrame implements ActionListener {
     private static final String FONT = "Serif";
 
     private JTextArea clientLogTextArea;
+    private JButton connectBtn;
+    private JScrollBar scroller;
 
     private transient Socket socket;
     private transient BufferedReader input;
@@ -57,7 +60,7 @@ public class ClientFrame extends JFrame implements ActionListener {
     }
 
     private JPanel headerPanel() {
-        JButton connectBtn = new JButton();
+        connectBtn = new JButton();
         JTextField usernameTextField = new JTextField();
 
         JPanel header = new JPanel();
@@ -75,6 +78,7 @@ public class ClientFrame extends JFrame implements ActionListener {
             } else {
                 clientName = t;
                 logText("Your username is " + t + "\n");
+                connectBtn.setEnabled(false);
                 connectToServer();
             }
         });
@@ -97,6 +101,7 @@ public class ClientFrame extends JFrame implements ActionListener {
         clientLogTextArea.setLineWrap(true);
         clientLogTextArea.setFont(new Font(FONT, Font.PLAIN, 15));
         JScrollPane clientLogScrollArea = new JScrollPane(clientLogTextArea);
+        scroller =clientLogScrollArea.getVerticalScrollBar();
 
         clientLogPanel.add(clientLogScrollArea);
         return clientLogPanel;
@@ -125,13 +130,14 @@ public class ClientFrame extends JFrame implements ActionListener {
     }
 
     private void connectToServer() {
-        if (!clientName.isEmpty()) { 
+        if (!clientName.isEmpty()) {
             try {
                 socket = new Socket("localhost", PORT);
                 input = new BufferedReader(new InputStreamReader(socket.getInputStream()));
                 output = new PrintWriter(socket.getOutputStream(), true);
 
-                output.println(clientName + " has joined the server"); // Send username to server
+                output.println(clientName);
+                // output.println(clientName + " has joined the server"); // Send username to server
 
                 ClientThread clientThread = new ClientThread(socket, this);
                 clientThread.start();
@@ -147,24 +153,41 @@ public class ClientFrame extends JFrame implements ActionListener {
 
     private void closeConnection() {
         try {
-            if (output != null) output.close();
-            if (input != null) input.close();
-            if (socket != null) socket.close();
+            if (output != null)
+                output.close();
+            if (input != null)
+                input.close();
+            if (socket != null)
+                socket.close();
             connected = false;
+            connectBtn.setEnabled(true);
         } catch (IOException e) {
             logText("Error while closing connection: " + e.getMessage() + "\n");
         }
     }
+
     public void sendMessageToServer(String message) {
         if (connected && output != null) {
             output.println(message);
+            updateScroll();
         } else {
             logText("Not connected to the server\n");
         }
     }
 
+    public void activateBtn() {
+        if (connected) {
+            connectBtn.setEnabled(true);
+        }
+    }
+
+    private void updateScroll() {
+        scroller.setValue(scroller.getMaximum());
+    }
+
     public void logTextFromServer(String message) {
         logText(message);
+        updateScroll();
     }
 
     public void logText(String s) {

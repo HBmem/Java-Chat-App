@@ -25,7 +25,7 @@ import resources.service.ServerThread;
 public class ServerFrame extends JFrame implements ActionListener {
 
     transient Logger logger = Logger.getLogger(getClass().getName());
-    
+
     private String serverStatus = "OFF";
     private JButton startServerBtn;
     private JTextArea serverLogTextArea;
@@ -57,7 +57,7 @@ public class ServerFrame extends JFrame implements ActionListener {
         serverLogPanel.setBackground(Color.GRAY);
         serverLogPanel.setBounds(0, 35, 420, 285);
 
-        serverLogTextArea = new JTextArea(15,25);
+        serverLogTextArea = new JTextArea(15, 25);
         serverLogTextArea.setLineWrap(true);
         serverLogTextArea.setFont(new Font("Serif", Font.PLAIN, 15));
         JScrollPane serverLogScrollArea = new JScrollPane(serverLogTextArea);

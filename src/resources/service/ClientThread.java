@@ -8,8 +8,8 @@ import java.util.logging.Logger;
 
 import resources.ui.ClientFrame;
 
-public class ClientThread extends Thread{
-    
+public class ClientThread extends Thread {
+
     Logger logger = Logger.getLogger(getClass().getName());
 
     private Socket socket;
@@ -30,20 +30,21 @@ public class ClientThread extends Thread{
     @Override
     public void run() {
         try {
-             while (true) {
+            while (true) {
                 String response = in.readLine();
                 if (response == null) {
                     break;
                 }
                 logger.info(response);
                 clientFrame.logTextFromServer(response + "\n");
-             }
+            }
         } catch (IOException e) {
             e.printStackTrace();
         } finally {
             try {
                 in.close();
                 socket.close();
+                clientFrame.activateBtn();
             } catch (IOException e) {
                 e.printStackTrace();
             }
