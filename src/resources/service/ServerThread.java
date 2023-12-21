@@ -43,6 +43,8 @@ public class ServerThread extends Thread {
             String inputString;
             while ((inputString = input.readLine()) != null) {
                 if (inputString.equals(".exit")) {
+                    out.println("You have left the server");
+                    broadcast("A user has left the server");
                     break;
                 }
 

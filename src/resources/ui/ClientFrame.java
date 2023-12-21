@@ -112,7 +112,11 @@ public class ClientFrame extends JFrame implements ActionListener {
         clientTextArea.setFont(new Font(FONT, Font.PLAIN, 15));
         clientTextArea.addActionListener(e -> {
             String t = clientTextArea.getText();
-            sendMessageToServer("(" + clientName + "): " + t);
+            if (t.charAt(0) == '.') {
+                sendMessageToServer(t);
+            } else {
+                sendMessageToServer("(" + clientName + "): " + t);
+            }
             clientTextArea.setText("");
         });
 
